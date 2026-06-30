@@ -44,6 +44,7 @@
             font-size: 24px;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-weight: bold;
         }
 
         .game-stats {
@@ -376,7 +377,7 @@
             const container = canvas.parentElement;
             const rect = container.getBoundingClientRect();
             canvas.width = rect.width;
-            canvas.height = rect.width * (3 / 4); // 4:3 aspect ratio
+            canvas.height = rect.width * (3 / 4);
         }
 
         resizeCanvas();
@@ -412,15 +413,15 @@
             isPaused: false
         };
 
-        const SPRITE_WIDTH = 60;
-        const SPRITE_HEIGHT = 60;
-        const OBSTACLE_SIZE = 40;
-        const PUCK_SIZE = 20;
-        const GOLD_PUCK_SIZE = 25;
+        const SPRITE_WIDTH = 80;
+        const SPRITE_HEIGHT = 80;
+        const OBSTACLE_SIZE = 50;
+        const PUCK_SIZE = 25;
+        const GOLD_PUCK_SIZE = 30;
 
         const player = {
             x: canvas.width / 2,
-            y: canvas.height - 80,
+            y: canvas.height - 100,
             width: SPRITE_WIDTH,
             height: SPRITE_HEIGHT,
             speed: 5,
@@ -493,7 +494,9 @@
 
             update() {
                 this.y += this.speedY;
-                this.rotation += 0.05;
+                if (this.type !== 'opponent') {
+                    this.rotation += 0.05;
+                }
                 
                 if (this.type === 'opponent') {
                     this.animationFrame += 0.1;
@@ -501,30 +504,30 @@
             }
 
             draw() {
-                ctx.save();
-                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
-                ctx.rotate(this.rotation);
-                
-                switch (this.type) {
-                    case 'puck':
-                        drawPuck(0, 0, OBSTACLE_SIZE / 2, false);
-                        break;
-                    case 'cone':
-                        drawCone(0, 0);
-                        break;
-                    case 'net':
-                        drawNet(0, 0);
-                        break;
-                    case 'snow':
-                        drawSnow(0, 0);
-                        break;
-                    case 'opponent':
-                        ctx.rotate(-this.rotation);
-                        drawOpponentSkater(0, 0, this.animationFrame);
-                        break;
+                if (this.type === 'opponent') {
+                    drawOpponentSkater(this.x, this.y, this.animationFrame);
+                } else {
+                    ctx.save();
+                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                    ctx.rotate(this.rotation);
+                    
+                    switch (this.type) {
+                        case 'puck':
+                            drawPuck(0, 0, OBSTACLE_SIZE / 2, false);
+                            break;
+                        case 'cone':
+                            drawCone(0, 0);
+                            break;
+                        case 'net':
+                            drawNet(0, 0);
+                            break;
+                        case 'snow':
+                            drawSnow(0, 0);
+                            break;
+                    }
+                    
+                    ctx.restore();
                 }
-                
-                ctx.restore();
             }
 
             isOffScreen() {
@@ -592,149 +595,172 @@
         function drawCone(x, y) {
             ctx.fillStyle = '#FF6600';
             ctx.beginPath();
-            ctx.moveTo(x, y - 15);
-            ctx.lineTo(x - 12, y + 15);
-            ctx.lineTo(x + 12, y + 15);
+            ctx.moveTo(x, y - 18);
+            ctx.lineTo(x - 14, y + 18);
+            ctx.lineTo(x + 14, y + 18);
             ctx.closePath();
             ctx.fill();
             
             ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
-            ctx.moveTo(x - 8, y + 5);
-            ctx.lineTo(x + 8, y + 5);
+            ctx.moveTo(x - 10, y + 3);
+            ctx.lineTo(x + 10, y + 3);
             ctx.stroke();
             
             ctx.fillStyle = '#FF3300';
             ctx.beginPath();
-            ctx.arc(x, y - 15, 6, 0, Math.PI * 2);
+            ctx.arc(x, y - 18, 7, 0, Math.PI * 2);
             ctx.fill();
             
             ctx.strokeStyle = '#87CEEB';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(x, y + 18, 15, 0, Math.PI * 2);
+            ctx.arc(x, y + 21, 18, 0, Math.PI * 2);
             ctx.stroke();
         }
 
         function drawNet(x, y) {
             ctx.fillStyle = '#990000';
-            ctx.fillRect(x - 18, y - 15, 6, 30);
-            ctx.fillRect(x + 12, y - 15, 6, 30);
+            ctx.fillRect(x - 20, y - 18, 7, 36);
+            ctx.fillRect(x + 13, y - 18, 7, 36);
             
             ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 5; i++) {
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 6; i++) {
                 ctx.beginPath();
-                ctx.moveTo(x - 18 + i * 8, y - 15);
-                ctx.lineTo(x - 18 + i * 8, y + 15);
+                ctx.moveTo(x - 20 + i * 9, y - 18);
+                ctx.lineTo(x - 20 + i * 9, y + 18);
                 ctx.stroke();
             }
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 5; i++) {
                 ctx.beginPath();
-                ctx.moveTo(x - 18, y - 15 + i * 10);
-                ctx.lineTo(x + 18, y - 15 + i * 10);
+                ctx.moveTo(x - 20, y - 18 + i * 12);
+                ctx.lineTo(x + 20, y - 18 + i * 12);
                 ctx.stroke();
             }
             
             ctx.strokeStyle = '#87CEEB';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(x, y + 18, 20, 0, Math.PI * 2);
+            ctx.arc(x, y + 21, 22, 0, Math.PI * 2);
             ctx.stroke();
         }
 
         function drawSnow(x, y) {
             ctx.fillStyle = '#E8F4F8';
             ctx.beginPath();
-            ctx.ellipse(x, y - 5, 18, 12, 0, 0, Math.PI * 2);
+            ctx.ellipse(x, y - 6, 20, 14, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#D0E8F0';
             ctx.beginPath();
-            ctx.ellipse(x, y + 5, 15, 10, 0, 0, Math.PI * 2);
+            ctx.ellipse(x, y + 6, 17, 12, 0, 0, Math.PI * 2);
             ctx.fill();
             
             ctx.strokeStyle = '#A0C8E0';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
-            ctx.ellipse(x, y - 5, 18, 12, 0, 0, Math.PI * 2);
+            ctx.ellipse(x, y - 6, 20, 14, 0, 0, Math.PI * 2);
             ctx.stroke();
         }
 
         function drawOpponentSkater(x, y, animFrame) {
             const frame = Math.floor(animFrame) % 2;
             
+            // Jersey (blue)
             ctx.fillStyle = '#0052CC';
-            ctx.fillRect(x - 8, y - 5, 16, 12);
+            ctx.fillRect(x - 10, y - 8, 20, 15);
             
+            // Jersey number
             ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 6px Arial';
+            ctx.font = 'bold 10px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('92', x, y - 1);
+            ctx.fillText('92', x, y - 2);
             
+            // Head
             ctx.fillStyle = '#8B6914';
             ctx.beginPath();
-            ctx.arc(x, y - 8, 4, 0, Math.PI * 2);
+            ctx.arc(x, y - 12, 6, 0, Math.PI * 2);
             ctx.fill();
             
+            // Pants (black)
             ctx.fillStyle = '#000000';
-            ctx.fillRect(x - 8, y + 7, 16, 8);
+            ctx.fillRect(x - 10, y + 7, 20, 10);
             
+            // Skates (animated)
             ctx.fillStyle = '#333333';
-            const legOffset = frame === 0 ? -3 : 3;
-            ctx.fillRect(x - 4 + legOffset, y + 15, 4, 6);
-            ctx.fillRect(x + legOffset, y + 15, 4, 6);
+            const legOffset = frame === 0 ? -4 : 4;
+            ctx.fillRect(x - 6 + legOffset, y + 17, 5, 7);
+            ctx.fillRect(x + 2 + legOffset, y + 17, 5, 7);
             
+            // Stick
             ctx.strokeStyle = '#8B4513';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
-            ctx.moveTo(x + 8, y + 5);
-            ctx.lineTo(x + 12, y + 15);
+            ctx.moveTo(x + 10, y + 5);
+            ctx.lineTo(x + 14, y + 18);
             ctx.stroke();
         }
 
         function drawSamboni() {
+            // Zamboni body (yellow)
             ctx.fillStyle = '#FFD700';
-            ctx.fillRect(player.x, player.y, SPRITE_WIDTH, SPRITE_HEIGHT / 2);
+            ctx.fillRect(player.x + 5, player.y + 20, SPRITE_WIDTH - 10, SPRITE_HEIGHT / 2 - 10);
             
+            // Cabin (dark gray)
             ctx.fillStyle = '#333333';
-            ctx.fillRect(player.x + 8, player.y - 10, SPRITE_WIDTH - 16, 15);
+            ctx.fillRect(player.x + 10, player.y + 5, SPRITE_WIDTH - 20, 20);
             
+            // Windows (light blue)
             ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(player.x + 12, player.y - 8, 10, 8);
-            ctx.fillRect(player.x + 28, player.y - 8, 10, 8);
+            ctx.fillRect(player.x + 15, player.y + 8, 12, 10);
+            ctx.fillRect(player.x + SPRITE_WIDTH - 27, player.y + 8, 12, 10);
             
+            // Bruin mascot head (brown)
             ctx.fillStyle = '#8B6914';
             ctx.beginPath();
-            ctx.arc(player.x + SPRITE_WIDTH / 2, player.y - 20, 12, 0, Math.PI * 2);
+            ctx.arc(player.x + SPRITE_WIDTH / 2, player.y - 10, 18, 0, Math.PI * 2);
             ctx.fill();
             
-            ctx.fillStyle = '#0052CC';
-            ctx.fillRect(player.x + SPRITE_WIDTH / 2 - 8, player.y - 12, 16, 10);
+            // Mascot ears
+            ctx.beginPath();
+            ctx.arc(player.x + SPRITE_WIDTH / 2 - 12, player.y - 25, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(player.x + SPRITE_WIDTH / 2 + 12, player.y - 25, 8, 0, Math.PI * 2);
+            ctx.fill();
             
+            // Mascot jersey (blue)
+            ctx.fillStyle = '#0052CC';
+            ctx.fillRect(player.x + SPRITE_WIDTH / 2 - 12, player.y - 2, 24, 14);
+            
+            // Number 92
             ctx.fillStyle = '#FFD700';
-            ctx.font = 'bold 8px Arial';
+            ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('92', player.x + SPRITE_WIDTH / 2, player.y - 8);
+            ctx.fillText('92', player.x + SPRITE_WIDTH / 2, player.y + 4);
             
+            // Wheels
             ctx.fillStyle = '#1a1a1a';
             ctx.beginPath();
-            ctx.arc(player.x + 12, player.y + SPRITE_HEIGHT / 2 + 5, 5, 0, Math.PI * 2);
+            ctx.arc(player.x + 15, player.y + SPRITE_HEIGHT / 2 + 8, 8, 0, Math.PI * 2);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(player.x + SPRITE_WIDTH - 12, player.y + SPRITE_HEIGHT / 2 + 5, 5, 0, Math.PI * 2);
+            ctx.arc(player.x + SPRITE_WIDTH - 15, player.y + SPRITE_HEIGHT / 2 + 8, 8, 0, Math.PI * 2);
             ctx.fill();
             
+            // Blade/plow
             ctx.fillStyle = '#555555';
-            ctx.fillRect(player.x + 5, player.y + SPRITE_HEIGHT / 2, SPRITE_WIDTH - 10, 8);
+            ctx.fillRect(player.x + 8, player.y + SPRITE_HEIGHT / 2, SPRITE_WIDTH - 16, 10);
             
-            ctx.strokeStyle = 'rgba(135, 206, 235, 0.5)';
-            ctx.lineWidth = 3;
+            // Ice trail effect
+            ctx.strokeStyle = 'rgba(135, 206, 235, 0.6)';
+            ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(player.x - 10, player.y + SPRITE_HEIGHT / 2 + 4);
-            ctx.lineTo(player.x - 30, player.y + SPRITE_HEIGHT / 2 + 4);
+            ctx.moveTo(player.x - 5, player.y + SPRITE_HEIGHT / 2 + 5);
+            ctx.lineTo(player.x - 40, player.y + SPRITE_HEIGHT / 2 + 5);
             ctx.stroke();
         }
 
@@ -892,15 +918,38 @@
         }
 
         function draw() {
-            ctx.fillStyle = 'rgba(135, 206, 235, 0.3)';
+            // Draw rink ice gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#e0f6ff');
+            gradient.addColorStop(0.5, '#87ceeb');
+            gradient.addColorStop(1, '#d0e8f0');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            ctx.strokeStyle = 'rgba(200, 0, 0, 0.2)';
-            ctx.lineWidth = 2;
+            // Draw center line
+            ctx.strokeStyle = 'rgba(200, 0, 0, 0.3)';
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(0, canvas.height / 2);
             ctx.lineTo(canvas.width, canvas.height / 2);
             ctx.stroke();
+            
+            // Draw goal lines
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.2);
+            ctx.lineTo(canvas.width, canvas.height * 0.2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.8);
+            ctx.lineTo(canvas.width, canvas.height * 0.8);
+            ctx.stroke();
+            
+            // Draw boards (blue outline)
+            ctx.strokeStyle = '#1a3a52';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
             
             for (let obs of obstacles) {
                 obs.draw();
@@ -950,7 +999,7 @@
             };
             
             player.x = canvas.width / 2;
-            player.y = canvas.height - 80;
+            player.y = canvas.height - 100;
             player.velocity = 0;
             
             obstacles = [];
