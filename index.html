@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samboni's Schedule Rush</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            background: #0a0e27;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-header {
+            background: linear-gradient(90deg, #1a3a52 0%, #2d5a8c 100%);
+            padding: 15px;
+            border-bottom: 3px solid #ffc107;
+        }
+
+        .game-header h1 {
+            color: #ffc107;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 2px solid #ffc107;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .stat-label {
+            display: block;
+            color: #b8860b;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            display: block;
+            color: #ffc107;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4 / 3;
+            background: linear-gradient(180deg, #87ceeb 0%, #e0f6ff 100%);
+            border: 3px solid #1a3a52;
+            touch-action: none;
+        }
+
+        .controls-info {
+            background: rgba(26, 58, 82, 0.8);
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            color: #ffc107;
+            border-top: 2px solid #ffc107;
+        }
+
+        .controls-info p {
+            margin: 4px 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .overlay-content {
+            background: linear-gradient(135deg, #1a3a52 0%, #2d5a8c 100%);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            border: 3px solid #ffc107;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .overlay-content h2 {
+            color: #ffc107;
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .overlay-content p {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .final-stats {
+            color: #fff;
+            margin: 20px 0;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
+        .final-stats p {
+            margin: 10px 0;
+        }
+
+        .final-stats span {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .button {
+            background: #ffc107;
+            color: #1a3a52;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .button:hover {
+            background: #ffed4e;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5);
+        }
+
+        .button:active {
+            transform: scale(0.98);
+        }
+
+        .schedule-reveal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .schedule-reveal.hidden {
+            display: none;
+        }
+
+        .schedule-content {
+            background: linear-gradient(135deg, #1a3a52 0%, #2d5a8c 100%);
+            padding: 30px;
+            border-radius: 10px;
+            border: 3px solid #ffc107;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .schedule-content h3 {
+            color: #ffc107;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .schedule-list {
+            color: #fff;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .schedule-list div {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffc107;
+            border-radius: 3px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #ffc107;
+            color: #1a3a52;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #ffed4e;
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 600px) {
+            .game-header h1 {
+                font-size: 20px;
+            }
+
+            .game-stats {
+                gap: 5px;
+            }
+
+            .stat {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+
+            .stat-value {
+                font-size: 14px;
+            }
+
+            .controls-info {
+                font-size: 11px;
+            }
+
+            .controls-info p {
+                margin: 2px 0;
+            }
+
+            .overlay-content {
+                padding: 20px;
+            }
+
+            .overlay-content h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🏒 Samboni's Schedule Rush 🏒</h1>
+            <div class="game-stats">
+                <div class="stat">
+                    <span class="stat-label">Score:</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Opponents Revealed:</span>
+                    <span class="stat-value" id="opponents-revealed">0/16</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Distance:</span>
+                    <span class="stat-value" id="distance">0m</span>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="gameOverScreen" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>Game Over!</h2>
+                <div class="final-stats">
+                    <p>Final Score: <span id="final-score">0</span></p>
+                    <p>Opponents Revealed: <span id="final-opponents">0</span>/16</p>
+                    <p>Distance Traveled: <span id="final-distance">0</span>m</p>
+                </div>
+                <button id="restartBtn" class="button">Play Again</button>
+            </div>
+        </div>
+
+        <div id="victoryScreen" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>🎉 Victory! 🎉</h2>
+                <p>You've revealed the entire Providence Bruins schedule!</p>
+                <div class="final-stats">
+                    <p>Final Score: <span id="victory-score">0</span></p>
+                    <p>Distance Traveled: <span id="victory-distance">0</span>m</p>
+                </div>
+                <button id="victoryRestartBtn" class="button">Play Again</button>
+            </div>
+        </div>
+
+        <div id="scheduleReveal" class="schedule-reveal hidden">
+            <div class="schedule-content">
+                <button class="close-btn" id="closeSchedule">&times;</button>
+                <h3>Providence Bruins Schedule</h3>
+                <div id="scheduleList" class="schedule-list"></div>
+            </div>
+        </div>
+
+        <div class="controls-info">
+            <p>📱 <strong>Mobile:</strong> Tap left/right side to move</p>
+            <p>🖱️ <strong>Desktop:</strong> Arrow keys or A/D to move</p>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.width * (3 / 4); // 4:3 aspect ratio
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game variables
+        const OPPONENTS = [
+            'Bridgeport Islanders',
+            'Hershey Bears',
+            'Springfield Thunderbirds',
+            'Lehigh Valley Phantoms',
+            'Hartford Wolf Pack',
+            'Utica Comets',
+            'Charlotte Checkers',
+            'Wilkes-Barre/Scranton Penguins',
+            'Toronto Marlies',
+            'Laval Rocket',
+            'Belleville Senators',
+            'Syracuse Crunch',
+            'Rochester Americans',
+            'Stockton Heat',
+            'Cleveland Monsters',
+            'Iowa Wild'
+        ];
+
+        const GAMES_PER_OPPONENT = 4;
+
+        let gameState = {
+            score: 0,
+            distance: 0,
+            opponentsRevealed: new Set(),
+            gameActive: true,
+            isPaused: false
+        };
+
+        const SPRITE_WIDTH = 60;
+        const SPRITE_HEIGHT = 60;
+        const OBSTACLE_SIZE = 40;
+        const PUCK_SIZE = 20;
+        const GOLD_PUCK_SIZE = 25;
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 80,
+            width: SPRITE_WIDTH,
+            height: SPRITE_HEIGHT,
+            speed: 5,
+            velocity: 0,
+            maxVelocity: 8,
+            acceleration: 0.3,
+            friction: 0.85
+        };
+
+        const keys = {};
+        const touchZones = {
+            left: false,
+            right: false
+        };
+
+        // Keyboard input
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Touch input
+        canvas.addEventListener('touchstart', handleTouchStart, false);
+        canvas.addEventListener('touchmove', handleTouchMove, false);
+        canvas.addEventListener('touchend', handleTouchEnd, false);
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            for (let touch of e.touches) {
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                
+                if (x < canvas.width / 2) {
+                    touchZones.left = true;
+                } else {
+                    touchZones.right = true;
+                }
+            }
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            touchZones.left = false;
+            touchZones.right = false;
+        }
+
+        let obstacles = [];
+        let pickups = [];
+        let gameTime = 0;
+
+        class Obstacle {
+            constructor(x, y, type, opponentIndex) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.width = OBSTACLE_SIZE;
+                this.height = OBSTACLE_SIZE;
+                this.speedY = 3;
+                this.opponentIndex = opponentIndex;
+                this.rotation = 0;
+                this.animationFrame = 0;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.rotation += 0.05;
+                
+                if (this.type === 'opponent') {
+                    this.animationFrame += 0.1;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.rotate(this.rotation);
+                
+                switch (this.type) {
+                    case 'puck':
+                        drawPuck(0, 0, OBSTACLE_SIZE / 2, false);
+                        break;
+                    case 'cone':
+                        drawCone(0, 0);
+                        break;
+                    case 'net':
+                        drawNet(0, 0);
+                        break;
+                    case 'snow':
+                        drawSnow(0, 0);
+                        break;
+                    case 'opponent':
+                        ctx.rotate(-this.rotation);
+                        drawOpponentSkater(0, 0, this.animationFrame);
+                        break;
+                }
+                
+                ctx.restore();
+            }
+
+            isOffScreen() {
+                return this.y > canvas.height;
+            }
+        }
+
+        class Pickup {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.width = type === 'gold_puck' ? GOLD_PUCK_SIZE : PUCK_SIZE;
+                this.height = this.width;
+                this.speedY = 3;
+                this.bob = 0;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.bob += 0.1;
+            }
+
+            draw() {
+                if (this.type === 'gold_puck') {
+                    drawPuck(this.x, this.y + Math.sin(this.bob) * 3, this.width / 2, true);
+                } else {
+                    drawPuck(this.x, this.y, this.width / 2, false);
+                }
+            }
+
+            isOffScreen() {
+                return this.y > canvas.height;
+            }
+        }
+
+        // Drawing functions
+        function drawPuck(x, y, radius, isGold) {
+            if (isGold) {
+                const gradient = ctx.createRadialGradient(x - 5, y - 5, 0, x, y, radius);
+                gradient.addColorStop(0, '#FFD700');
+                gradient.addColorStop(0.7, '#FFA500');
+                gradient.addColorStop(1, '#FF8C00');
+                ctx.fillStyle = gradient;
+            } else {
+                ctx.fillStyle = '#1a1a1a';
+            }
+            
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = isGold ? '#FFFF00' : '#4a4a4a';
+            ctx.beginPath();
+            ctx.arc(x - radius / 3, y - radius / 3, radius / 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#87CEEB';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y + radius + 3, radius * 1.2, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function drawCone(x, y) {
+            ctx.fillStyle = '#FF6600';
+            ctx.beginPath();
+            ctx.moveTo(x, y - 15);
+            ctx.lineTo(x - 12, y + 15);
+            ctx.lineTo(x + 12, y + 15);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x - 8, y + 5);
+            ctx.lineTo(x + 8, y + 5);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#FF3300';
+            ctx.beginPath();
+            ctx.arc(x, y - 15, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#87CEEB';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y + 18, 15, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function drawNet(x, y) {
+            ctx.fillStyle = '#990000';
+            ctx.fillRect(x - 18, y - 15, 6, 30);
+            ctx.fillRect(x + 12, y - 15, 6, 30);
+            
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(x - 18 + i * 8, y - 15);
+                ctx.lineTo(x - 18 + i * 8, y + 15);
+                ctx.stroke();
+            }
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(x - 18, y - 15 + i * 10);
+                ctx.lineTo(x + 18, y - 15 + i * 10);
+                ctx.stroke();
+            }
+            
+            ctx.strokeStyle = '#87CEEB';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y + 18, 20, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function drawSnow(x, y) {
+            ctx.fillStyle = '#E8F4F8';
+            ctx.beginPath();
+            ctx.ellipse(x, y - 5, 18, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#D0E8F0';
+            ctx.beginPath();
+            ctx.ellipse(x, y + 5, 15, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#A0C8E0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(x, y - 5, 18, 12, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function drawOpponentSkater(x, y, animFrame) {
+            const frame = Math.floor(animFrame) % 2;
+            
+            ctx.fillStyle = '#0052CC';
+            ctx.fillRect(x - 8, y - 5, 16, 12);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 6px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('92', x, y - 1);
+            
+            ctx.fillStyle = '#8B6914';
+            ctx.beginPath();
+            ctx.arc(x, y - 8, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x - 8, y + 7, 16, 8);
+            
+            ctx.fillStyle = '#333333';
+            const legOffset = frame === 0 ? -3 : 3;
+            ctx.fillRect(x - 4 + legOffset, y + 15, 4, 6);
+            ctx.fillRect(x + legOffset, y + 15, 4, 6);
+            
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x + 8, y + 5);
+            ctx.lineTo(x + 12, y + 15);
+            ctx.stroke();
+        }
+
+        function drawSamboni() {
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(player.x, player.y, SPRITE_WIDTH, SPRITE_HEIGHT / 2);
+            
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(player.x + 8, player.y - 10, SPRITE_WIDTH - 16, 15);
+            
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(player.x + 12, player.y - 8, 10, 8);
+            ctx.fillRect(player.x + 28, player.y - 8, 10, 8);
+            
+            ctx.fillStyle = '#8B6914';
+            ctx.beginPath();
+            ctx.arc(player.x + SPRITE_WIDTH / 2, player.y - 20, 12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#0052CC';
+            ctx.fillRect(player.x + SPRITE_WIDTH / 2 - 8, player.y - 12, 16, 10);
+            
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 8px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('92', player.x + SPRITE_WIDTH / 2, player.y - 8);
+            
+            ctx.fillStyle = '#1a1a1a';
+            ctx.beginPath();
+            ctx.arc(player.x + 12, player.y + SPRITE_HEIGHT / 2 + 5, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(player.x + SPRITE_WIDTH - 12, player.y + SPRITE_HEIGHT / 2 + 5, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#555555';
+            ctx.fillRect(player.x + 5, player.y + SPRITE_HEIGHT / 2, SPRITE_WIDTH - 10, 8);
+            
+            ctx.strokeStyle = 'rgba(135, 206, 235, 0.5)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(player.x - 10, player.y + SPRITE_HEIGHT / 2 + 4);
+            ctx.lineTo(player.x - 30, player.y + SPRITE_HEIGHT / 2 + 4);
+            ctx.stroke();
+        }
+
+        function spawnObstacle() {
+            const types = ['puck', 'cone', 'net', 'snow'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const x = Math.random() * (canvas.width - OBSTACLE_SIZE);
+            
+            obstacles.push(new Obstacle(x, -OBSTACLE_SIZE, type, null));
+            
+            if (Math.random() < 0.15 && gameState.opponentsRevealed.size < OPPONENTS.length) {
+                let opponentIndex;
+                do {
+                    opponentIndex = Math.floor(Math.random() * OPPONENTS.length);
+                } while (gameState.opponentsRevealed.has(opponentIndex));
+                
+                const x = Math.random() * (canvas.width - OBSTACLE_SIZE);
+                obstacles.push(new Obstacle(x, -OBSTACLE_SIZE, 'opponent', opponentIndex));
+            }
+        }
+
+        function spawnPickup() {
+            const isGold = Math.random() < 0.2;
+            const x = Math.random() * (canvas.width - (isGold ? GOLD_PUCK_SIZE : PUCK_SIZE));
+            pickups.push(new Pickup(x, -20, isGold ? 'gold_puck' : 'puck'));
+        }
+
+        function checkCollisions() {
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                
+                if (circleRectCollision(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 2, 
+                                        player.x, player.y, player.width, player.height)) {
+                    
+                    if (obs.type === 'opponent') {
+                        const opponentIndex = obs.opponentIndex;
+                        gameState.opponentsRevealed.add(opponentIndex);
+                        gameState.score += 100;
+                        showScheduleReveal(opponentIndex);
+                        
+                        obstacles.splice(i, 1);
+                        continue;
+                    } else {
+                        gameState.score = Math.max(0, gameState.score - 25);
+                        player.velocity *= 0.5;
+                    }
+                    
+                    obstacles.splice(i, 1);
+                }
+            }
+            
+            for (let i = pickups.length - 1; i >= 0; i--) {
+                const pickup = pickups[i];
+                
+                if (circleRectCollision(pickup.x + pickup.width / 2, pickup.y + pickup.height / 2, pickup.width / 2,
+                                        player.x, player.y, player.width, player.height)) {
+                    
+                    if (pickup.type === 'gold_puck') {
+                        gameState.score += 50;
+                    }
+                    
+                    pickups.splice(i, 1);
+                }
+            }
+        }
+
+        function circleRectCollision(cx, cy, radius, rx, ry, rw, rh) {
+            const closestX = Math.max(rx, Math.min(cx, rx + rw));
+            const closestY = Math.max(ry, Math.min(cy, ry + rh));
+            
+            const dx = cx - closestX;
+            const dy = cy - closestY;
+            
+            return (dx * dx + dy * dy) < (radius * radius);
+        }
+
+        function showScheduleReveal(opponentIndex) {
+            const opponent = OPPONENTS[opponentIndex];
+            const scheduleReveal = document.getElementById('scheduleReveal');
+            const scheduleList = document.getElementById('scheduleList');
+            
+            scheduleList.innerHTML = '';
+            for (let i = 0; i < GAMES_PER_OPPONENT; i++) {
+                const isHome = i % 2 === 0;
+                const location = isHome ? 'Home vs' : 'Away @';
+                const div = document.createElement('div');
+                div.textContent = `${location} ${opponent}`;
+                scheduleList.appendChild(div);
+            }
+            
+            scheduleReveal.classList.remove('hidden');
+            
+            document.getElementById('closeSchedule').onclick = () => {
+                scheduleReveal.classList.add('hidden');
+            };
+        }
+
+        let spawnTimer = 0;
+        let pickupTimer = 0;
+
+        function update() {
+            if (!gameState.gameActive) return;
+            
+            gameTime++;
+            
+            if (keys['ArrowLeft'] || keys['a'] || keys['A'] || touchZones.left) {
+                player.velocity = Math.max(player.velocity - player.acceleration, -player.maxVelocity);
+            } else if (keys['ArrowRight'] || keys['d'] || keys['D'] || touchZones.right) {
+                player.velocity = Math.min(player.velocity + player.acceleration, player.maxVelocity);
+            } else {
+                player.velocity *= player.friction;
+            }
+            
+            player.x += player.velocity;
+            
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            
+            spawnTimer++;
+            if (spawnTimer > 60 - Math.min(gameTime / 500, 20)) {
+                spawnObstacle();
+                spawnTimer = 0;
+            }
+            
+            pickupTimer++;
+            if (pickupTimer > 120) {
+                spawnPickup();
+                pickupTimer = 0;
+            }
+            
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].update();
+                if (obstacles[i].isOffScreen()) {
+                    obstacles.splice(i, 1);
+                    if (obstacles[i - 1] && obstacles[i - 1].type !== 'opponent') {
+                        gameState.score += 5;
+                    }
+                }
+            }
+            
+            for (let i = pickups.length - 1; i >= 0; i--) {
+                pickups[i].update();
+                if (pickups[i].isOffScreen()) {
+                    pickups.splice(i, 1);
+                }
+            }
+            
+            gameState.distance = Math.floor(gameTime / 10);
+            
+            checkCollisions();
+            
+            if (gameState.opponentsRevealed.size === OPPONENTS.length) {
+                endGame(true);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(135, 206, 235, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = 'rgba(200, 0, 0, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            
+            for (let obs of obstacles) {
+                obs.draw();
+            }
+            
+            for (let pickup of pickups) {
+                pickup.draw();
+            }
+            
+            drawSamboni();
+            
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('opponents-revealed').textContent = `${gameState.opponentsRevealed.size}/16`;
+            document.getElementById('distance').textContent = `${gameState.distance}m`;
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame(victory) {
+            gameState.gameActive = false;
+            
+            if (victory) {
+                document.getElementById('victory-score').textContent = gameState.score;
+                document.getElementById('victory-distance').textContent = `${gameState.distance}m`;
+                document.getElementById('victoryScreen').classList.remove('hidden');
+                document.getElementById('victoryRestartBtn').onclick = restartGame;
+            } else {
+                document.getElementById('final-score').textContent = gameState.score;
+                document.getElementById('final-opponents').textContent = gameState.opponentsRevealed.size;
+                document.getElementById('final-distance').textContent = `${gameState.distance}m`;
+                document.getElementById('gameOverScreen').classList.remove('hidden');
+                document.getElementById('restartBtn').onclick = restartGame;
+            }
+        }
+
+        function restartGame() {
+            gameState = {
+                score: 0,
+                distance: 0,
+                opponentsRevealed: new Set(),
+                gameActive: true,
+                isPaused: false
+            };
+            
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 80;
+            player.velocity = 0;
+            
+            obstacles = [];
+            pickups = [];
+            gameTime = 0;
+            
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.add('hidden');
+            document.getElementById('scheduleReveal').classList.add('hidden');
+            
+            gameLoop();
+        }
+
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        gameLoop();
+    </script>
+</body>
+</html>
