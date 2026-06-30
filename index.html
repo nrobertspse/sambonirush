@@ -38,13 +38,15 @@
             border-bottom: 3px solid #ffc107;
         }
 
-        .game-header h1 {
-            color: #ffc107;
+        .game-title {
             text-align: center;
-            font-size: 24px;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            font-weight: bold;
+        }
+
+        .game-title img {
+            max-width: 100%;
+            height: auto;
+            max-height: 60px;
         }
 
         .game-stats {
@@ -268,8 +270,8 @@
         }
 
         @media (max-width: 600px) {
-            .game-header h1 {
-                font-size: 20px;
+            .game-title img {
+                max-height: 50px;
             }
 
             .game-stats {
@@ -310,7 +312,9 @@
 <body>
     <div class="game-container">
         <div class="game-header">
-            <h1>🏒 Samboni's Schedule Rush 🏒</h1>
+            <div class="game-title">
+                <img src="assets/Samboni_Schedule_Rush.png" alt="Samboni's Schedule Rush" onerror="this.style.display='none'">
+            </div>
             <div class="game-stats">
                 <div class="stat">
                     <span class="stat-label">Score:</span>
@@ -368,6 +372,38 @@
     </div>
 
     <script>
+        // Preload images
+        const images = {};
+        const imageFiles = {
+            background: 'assets/IceBackground.png',
+            samboniStraight: 'assets/GameIcon_Samboni_Drive_Straight.png',
+            samboniLeft: 'assets/GameIcon_Samboni_Drive_TurnLeft.png',
+            samboniRight: 'assets/GameIcon_Samboni_Drive_TurnRight.png',
+            puckBlack: 'assets/GameIcon_Hazards_BlackPuck.png',
+            puckGold: 'assets/GameIcon_Hazards_GoldPuck.png',
+            cone: 'assets/GameIcon_Hazards_Cone.png',
+            net: 'assets/GameIcon_Hazards_Net.png',
+            snow: 'assets/GameIcon_Hazards_SnowPile.png',
+            opponentLeft: 'assets/Opponent_Skater_HAM_Left.png',
+            opponentRight: 'assets/Opponent_Skater_HAM_Right.png'
+        };
+
+        let imagesLoaded = 0;
+        const totalImages = Object.keys(imageFiles).length;
+
+        for (const [key, src] of Object.entries(imageFiles)) {
+            const img = new Image();
+            img.onload = () => {
+                imagesLoaded++;
+            };
+            img.onerror = () => {
+                imagesLoaded++;
+                console.warn(`Failed to load: ${src}`);
+            };
+            img.src = src;
+            images[key] = img;
+        }
+
         // Canvas setup
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -428,7 +464,8 @@
             velocity: 0,
             maxVelocity: 8,
             acceleration: 0.3,
-            friction: 0.85
+            friction: 0.85,
+            direction: 0 // -1 left, 0 straight, 1 right
         };
 
         const keys = {};
@@ -504,28 +541,33 @@
             }
 
             draw() {
-                if (this.type === 'opponent') {
-                    drawOpponentSkater(this.x, this.y, this.animationFrame);
-                } else {
+                let img = null;
+                switch (this.type) {
+                    case 'puck':
+                        img = images.puckBlack;
+                        break;
+                    case 'cone':
+                        img = images.cone;
+                        break;
+                    case 'net':
+                        img = images.net;
+                        break;
+                    case 'snow':
+                        img = images.snow;
+                        break;
+                    case 'opponent':
+                        const frame = Math.floor(this.animationFrame) % 2;
+                        img = frame === 0 ? images.opponentLeft : images.opponentRight;
+                        break;
+                }
+
+                if (img && img.complete) {
                     ctx.save();
                     ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
-                    ctx.rotate(this.rotation);
-                    
-                    switch (this.type) {
-                        case 'puck':
-                            drawPuck(0, 0, OBSTACLE_SIZE / 2, false);
-                            break;
-                        case 'cone':
-                            drawCone(0, 0);
-                            break;
-                        case 'net':
-                            drawNet(0, 0);
-                            break;
-                        case 'snow':
-                            drawSnow(0, 0);
-                            break;
+                    if (this.type !== 'opponent') {
+                        ctx.rotate(this.rotation);
                     }
-                    
+                    ctx.drawImage(img, -this.width / 2, -this.height / 2, this.width, this.height);
                     ctx.restore();
                 }
             }
@@ -552,216 +594,15 @@
             }
 
             draw() {
-                if (this.type === 'gold_puck') {
-                    drawPuck(this.x, this.y + Math.sin(this.bob) * 3, this.width / 2, true);
-                } else {
-                    drawPuck(this.x, this.y, this.width / 2, false);
+                const img = this.type === 'gold_puck' ? images.puckGold : images.puckBlack;
+                if (img && img.complete) {
+                    ctx.drawImage(img, this.x, this.y + Math.sin(this.bob) * 3, this.width, this.height);
                 }
             }
 
             isOffScreen() {
                 return this.y > canvas.height;
             }
-        }
-
-        // Drawing functions
-        function drawPuck(x, y, radius, isGold) {
-            if (isGold) {
-                const gradient = ctx.createRadialGradient(x - 5, y - 5, 0, x, y, radius);
-                gradient.addColorStop(0, '#FFD700');
-                gradient.addColorStop(0.7, '#FFA500');
-                gradient.addColorStop(1, '#FF8C00');
-                ctx.fillStyle = gradient;
-            } else {
-                ctx.fillStyle = '#1a1a1a';
-            }
-            
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = isGold ? '#FFFF00' : '#4a4a4a';
-            ctx.beginPath();
-            ctx.arc(x - radius / 3, y - radius / 3, radius / 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.strokeStyle = '#87CEEB';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(x, y + radius + 3, radius * 1.2, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        function drawCone(x, y) {
-            ctx.fillStyle = '#FF6600';
-            ctx.beginPath();
-            ctx.moveTo(x, y - 18);
-            ctx.lineTo(x - 14, y + 18);
-            ctx.lineTo(x + 14, y + 18);
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.moveTo(x - 10, y + 3);
-            ctx.lineTo(x + 10, y + 3);
-            ctx.stroke();
-            
-            ctx.fillStyle = '#FF3300';
-            ctx.beginPath();
-            ctx.arc(x, y - 18, 7, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.strokeStyle = '#87CEEB';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(x, y + 21, 18, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        function drawNet(x, y) {
-            ctx.fillStyle = '#990000';
-            ctx.fillRect(x - 20, y - 18, 7, 36);
-            ctx.fillRect(x + 13, y - 18, 7, 36);
-            
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 1.5;
-            for (let i = 0; i < 6; i++) {
-                ctx.beginPath();
-                ctx.moveTo(x - 20 + i * 9, y - 18);
-                ctx.lineTo(x - 20 + i * 9, y + 18);
-                ctx.stroke();
-            }
-            for (let i = 0; i < 5; i++) {
-                ctx.beginPath();
-                ctx.moveTo(x - 20, y - 18 + i * 12);
-                ctx.lineTo(x + 20, y - 18 + i * 12);
-                ctx.stroke();
-            }
-            
-            ctx.strokeStyle = '#87CEEB';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(x, y + 21, 22, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        function drawSnow(x, y) {
-            ctx.fillStyle = '#E8F4F8';
-            ctx.beginPath();
-            ctx.ellipse(x, y - 6, 20, 14, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#D0E8F0';
-            ctx.beginPath();
-            ctx.ellipse(x, y + 6, 17, 12, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.strokeStyle = '#A0C8E0';
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.ellipse(x, y - 6, 20, 14, 0, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        function drawOpponentSkater(x, y, animFrame) {
-            const frame = Math.floor(animFrame) % 2;
-            
-            // Jersey (blue)
-            ctx.fillStyle = '#0052CC';
-            ctx.fillRect(x - 10, y - 8, 20, 15);
-            
-            // Jersey number
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 10px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('92', x, y - 2);
-            
-            // Head
-            ctx.fillStyle = '#8B6914';
-            ctx.beginPath();
-            ctx.arc(x, y - 12, 6, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Pants (black)
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(x - 10, y + 7, 20, 10);
-            
-            // Skates (animated)
-            ctx.fillStyle = '#333333';
-            const legOffset = frame === 0 ? -4 : 4;
-            ctx.fillRect(x - 6 + legOffset, y + 17, 5, 7);
-            ctx.fillRect(x + 2 + legOffset, y + 17, 5, 7);
-            
-            // Stick
-            ctx.strokeStyle = '#8B4513';
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.moveTo(x + 10, y + 5);
-            ctx.lineTo(x + 14, y + 18);
-            ctx.stroke();
-        }
-
-        function drawSamboni() {
-            // Zamboni body (yellow)
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(player.x + 5, player.y + 20, SPRITE_WIDTH - 10, SPRITE_HEIGHT / 2 - 10);
-            
-            // Cabin (dark gray)
-            ctx.fillStyle = '#333333';
-            ctx.fillRect(player.x + 10, player.y + 5, SPRITE_WIDTH - 20, 20);
-            
-            // Windows (light blue)
-            ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(player.x + 15, player.y + 8, 12, 10);
-            ctx.fillRect(player.x + SPRITE_WIDTH - 27, player.y + 8, 12, 10);
-            
-            // Bruin mascot head (brown)
-            ctx.fillStyle = '#8B6914';
-            ctx.beginPath();
-            ctx.arc(player.x + SPRITE_WIDTH / 2, player.y - 10, 18, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Mascot ears
-            ctx.beginPath();
-            ctx.arc(player.x + SPRITE_WIDTH / 2 - 12, player.y - 25, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(player.x + SPRITE_WIDTH / 2 + 12, player.y - 25, 8, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Mascot jersey (blue)
-            ctx.fillStyle = '#0052CC';
-            ctx.fillRect(player.x + SPRITE_WIDTH / 2 - 12, player.y - 2, 24, 14);
-            
-            // Number 92
-            ctx.fillStyle = '#FFD700';
-            ctx.font = 'bold 12px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('92', player.x + SPRITE_WIDTH / 2, player.y + 4);
-            
-            // Wheels
-            ctx.fillStyle = '#1a1a1a';
-            ctx.beginPath();
-            ctx.arc(player.x + 15, player.y + SPRITE_HEIGHT / 2 + 8, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(player.x + SPRITE_WIDTH - 15, player.y + SPRITE_HEIGHT / 2 + 8, 8, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Blade/plow
-            ctx.fillStyle = '#555555';
-            ctx.fillRect(player.x + 8, player.y + SPRITE_HEIGHT / 2, SPRITE_WIDTH - 16, 10);
-            
-            // Ice trail effect
-            ctx.strokeStyle = 'rgba(135, 206, 235, 0.6)';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(player.x - 5, player.y + SPRITE_HEIGHT / 2 + 5);
-            ctx.lineTo(player.x - 40, player.y + SPRITE_HEIGHT / 2 + 5);
-            ctx.stroke();
         }
 
         function spawnObstacle() {
@@ -866,13 +707,18 @@
             
             gameTime++;
             
+            let newDirection = player.direction;
             if (keys['ArrowLeft'] || keys['a'] || keys['A'] || touchZones.left) {
                 player.velocity = Math.max(player.velocity - player.acceleration, -player.maxVelocity);
+                newDirection = -1;
             } else if (keys['ArrowRight'] || keys['d'] || keys['D'] || touchZones.right) {
                 player.velocity = Math.min(player.velocity + player.acceleration, player.maxVelocity);
+                newDirection = 1;
             } else {
                 player.velocity *= player.friction;
+                newDirection = 0;
             }
+            player.direction = newDirection;
             
             player.x += player.velocity;
             
@@ -918,38 +764,17 @@
         }
 
         function draw() {
-            // Draw rink ice gradient
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#e0f6ff');
-            gradient.addColorStop(0.5, '#87ceeb');
-            gradient.addColorStop(1, '#d0e8f0');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw center line
-            ctx.strokeStyle = 'rgba(200, 0, 0, 0.3)';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height / 2);
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
-            
-            // Draw goal lines
-            ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height * 0.2);
-            ctx.lineTo(canvas.width, canvas.height * 0.2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height * 0.8);
-            ctx.lineTo(canvas.width, canvas.height * 0.8);
-            ctx.stroke();
-            
-            // Draw boards (blue outline)
-            ctx.strokeStyle = '#1a3a52';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+            // Draw background
+            if (images.background && images.background.complete) {
+                ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
+            } else {
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#e0f6ff');
+                gradient.addColorStop(0.5, '#87ceeb');
+                gradient.addColorStop(1, '#d0e8f0');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
             
             for (let obs of obstacles) {
                 obs.draw();
@@ -964,6 +789,21 @@
             document.getElementById('score').textContent = gameState.score;
             document.getElementById('opponents-revealed').textContent = `${gameState.opponentsRevealed.size}/16`;
             document.getElementById('distance').textContent = `${gameState.distance}m`;
+        }
+
+        function drawSamboni() {
+            let img;
+            if (player.direction < 0) {
+                img = images.samboniLeft;
+            } else if (player.direction > 0) {
+                img = images.samboniRight;
+            } else {
+                img = images.samboniStraight;
+            }
+            
+            if (img && img.complete) {
+                ctx.drawImage(img, player.x, player.y, player.width, player.height);
+            }
         }
 
         function gameLoop() {
@@ -1001,6 +841,7 @@
             player.x = canvas.width / 2;
             player.y = canvas.height - 100;
             player.velocity = 0;
+            player.direction = 0;
             
             obstacles = [];
             pickups = [];
