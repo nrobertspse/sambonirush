@@ -291,7 +291,7 @@
             <canvas id="gameCanvas"></canvas>
 
             <div class="controls-info">
-                <p>📱 <strong>Mobile:</strong> Tap left/right side to move | 🎮 <strong>Desktop:</strong> Arrow keys or A/D</p>
+                <p>📱 <strong>Mobile:</strong> Tap left/right side to move | 🖱️ <strong>Desktop:</strong> Arrow keys or A/D</p>
             </div>
         </div>
 
@@ -394,19 +394,17 @@
             lastOpponentTime: 0
         };
 
-        // Perspective-based sizing
-        const BASE_SPRITE_WIDTH = 120;
-        const BASE_SPRITE_HEIGHT = 120;
-        const MIN_OBSTACLE_SIZE = 15;
-        const MAX_OBSTACLE_SIZE = 80;
-        const MIN_PUCK_SIZE = 8;
-        const MAX_PUCK_SIZE = 45;
+        const SPRITE_WIDTH = 120;
+        const SPRITE_HEIGHT = 120;
+        const OBSTACLE_SIZE = 80;
+        const PUCK_SIZE = 40;
+        const GOLD_PUCK_SIZE = 45;
 
         const player = {
             x: canvas.width / 2,
             y: canvas.height - 140,
-            width: BASE_SPRITE_WIDTH,
-            height: BASE_SPRITE_HEIGHT,
+            width: SPRITE_WIDTH,
+            height: SPRITE_HEIGHT,
             velocity: 0,
             maxVelocity: 8,
             acceleration: 0.3,
@@ -448,37 +446,22 @@
         let pickups = [];
         let gameTime = 0;
 
-        // Calculate size based on depth (0 = far, 1 = near)
-        function calculateSize(minSize, maxSize, depth) {
-            return minSize + (maxSize - minSize) * depth;
-        }
-
-        // Calculate horizontal position with perspective (narrows as it approaches)
-        function calculateXPosition(baseX, depth) {
-            const centerX = canvas.width / 2;
-            const offset = (baseX - centerX) * (1 - depth * 0.3);
-            return centerX + offset;
-        }
-
         class Obstacle {
             constructor(x, y, type, opponentIndex, lane) {
-                this.baseX = x; // Store base position
-                this.y = y; // 0 = far, canvas.height = near (player)
+                this.x = x;
+                this.y = y;
                 this.type = type;
+                this.width = OBSTACLE_SIZE;
+                this.height = OBSTACLE_SIZE;
+                this.speedY = 3 * gameState.difficulty;
                 this.opponentIndex = opponentIndex;
                 this.rotation = 0;
                 this.animationFrame = 0;
                 this.lane = lane;
-                this.baseSpeed = 2.5 * gameState.difficulty;
-            }
-
-            getDepth() {
-                // Convert Y position to depth (0 = far away, 1 = at player)
-                return Math.max(0, Math.min(1, this.y / (canvas.height - 100)));
             }
 
             update() {
-                this.y += this.baseSpeed * gameState.difficulty;
+                this.y += this.speedY;
                 if (this.type !== 'opponent') {
                     this.rotation += 0.05;
                 }
@@ -488,11 +471,6 @@
             }
 
             draw() {
-                const depth = this.getDepth();
-                const size = calculateSize(MIN_OBSTACLE_SIZE, MAX_OBSTACLE_SIZE, depth);
-                const x = calculateXPosition(this.baseX, depth);
-                const opacity = Math.max(0.3, depth);
-
                 let img = null;
                 switch (this.type) {
                     case 'puck': img = images.puckBlack; break;
@@ -507,74 +485,53 @@
 
                 if (img && img.complete) {
                     ctx.save();
-                    ctx.globalAlpha = opacity;
-                    ctx.translate(x + size / 2, this.y + size / 2);
+                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
                     if (this.type !== 'opponent') {
                         ctx.rotate(this.rotation);
                     }
-                    ctx.drawImage(img, -size / 2, -size / 2, size, size);
+                    ctx.drawImage(img, -this.width / 2, -this.height / 2, this.width, this.height);
                     ctx.restore();
                 }
             }
 
             isOffScreen() {
-                return this.y > canvas.height + 50;
-            }
-
-            getCollisionSize() {
-                const depth = this.getDepth();
-                return calculateSize(MIN_OBSTACLE_SIZE, MAX_OBSTACLE_SIZE, depth);
+                return this.y > canvas.height;
             }
         }
 
         class Pickup {
             constructor(x, y, type) {
-                this.baseX = x;
+                this.x = x;
                 this.y = y;
                 this.type = type;
+                this.width = type === 'gold_puck' ? GOLD_PUCK_SIZE : PUCK_SIZE;
+                this.height = this.width;
+                this.speedY = 3 * gameState.difficulty;
                 this.bob = 0;
-                this.baseSpeed = 2.5 * gameState.difficulty;
-            }
-
-            getDepth() {
-                return Math.max(0, Math.min(1, this.y / (canvas.height - 100)));
             }
 
             update() {
-                this.y += this.baseSpeed * gameState.difficulty;
+                this.y += this.speedY;
                 this.bob += 0.1;
             }
 
             draw() {
-                const depth = this.getDepth();
-                const size = calculateSize(MIN_PUCK_SIZE, MAX_PUCK_SIZE, depth);
-                const x = calculateXPosition(this.baseX, depth);
-                const opacity = Math.max(0.3, depth);
-
                 const img = this.type === 'gold_puck' ? images.puckGold : images.puckBlack;
                 if (img && img.complete) {
-                    ctx.save();
-                    ctx.globalAlpha = opacity;
-                    ctx.drawImage(img, x - size / 2, this.y + Math.sin(this.bob) * 3, size, size);
-                    ctx.restore();
+                    ctx.drawImage(img, this.x, this.y + Math.sin(this.bob) * 3, this.width, this.height);
                 }
             }
 
             isOffScreen() {
-                return this.y > canvas.height + 50;
-            }
-
-            getCollisionSize() {
-                const depth = this.getDepth();
-                return calculateSize(MIN_PUCK_SIZE, MAX_PUCK_SIZE, depth);
+                return this.y > canvas.height;
             }
         }
 
         function spawnObstacle() {
             const lanes = [
-                { start: 50, end: 180 },
-                { start: 220, end: 360 },
-                { start: 400, end: 530 }
+                { start: 50, end: 150 },
+                { start: 200, end: 300 },
+                { start: 350, end: 450 }
             ];
 
             // Ensure clear path down the middle
@@ -584,12 +541,12 @@
 
             for (const laneIdx of lanesToUse) {
                 const lane = lanes[laneIdx];
-                const x = lane.start + Math.random() * (lane.end - lane.start);
+                const x = lane.start + Math.random() * (lane.end - lane.start - OBSTACLE_SIZE);
                 
                 const types = ['puck', 'cone', 'net', 'snow'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 
-                obstacles.push(new Obstacle(x, -50, type, null, laneIdx));
+                obstacles.push(new Obstacle(x, -OBSTACLE_SIZE, type, null, laneIdx));
             }
 
             // Spawn opponent occasionally
@@ -600,20 +557,20 @@
                 } while (gameState.opponentsRevealed.has(opponentIndex));
                 
                 const lane = lanes[Math.floor(Math.random() * lanes.length)];
-                const x = lane.start + Math.random() * (lane.end - lane.start);
-                obstacles.push(new Obstacle(x, -50, 'opponent', opponentIndex, Math.floor(Math.random() * 3)));
+                const x = lane.start + Math.random() * (lane.end - lane.start - OBSTACLE_SIZE);
+                obstacles.push(new Obstacle(x, -OBSTACLE_SIZE, 'opponent', opponentIndex, Math.floor(Math.random() * 3)));
             }
         }
 
         function spawnPickup() {
             const lanes = [
-                { start: 50, end: 180 },
-                { start: 220, end: 360 },
-                { start: 400, end: 530 }
+                { start: 50, end: 150 },
+                { start: 200, end: 300 },
+                { start: 350, end: 450 }
             ];
             
             const lane = lanes[Math.floor(Math.random() * lanes.length)];
-            const x = lane.start + Math.random() * (lane.end - lane.start);
+            const x = lane.start + Math.random() * (lane.end - lane.start - GOLD_PUCK_SIZE);
             const isGold = Math.random() < 0.2;
             pickups.push(new Pickup(x, -40, isGold ? 'gold_puck' : 'puck'));
         }
@@ -621,10 +578,8 @@
         function checkCollisions() {
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const obs = obstacles[i];
-                const obsSize = obs.getCollisionSize();
-                const obsX = calculateXPosition(obs.baseX, obs.getDepth());
                 
-                if (circleRectCollision(obsX + obsSize / 2, obs.y + obsSize / 2, obsSize / 2, 
+                if (circleRectCollision(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 2, 
                                         player.x, player.y, player.width, player.height)) {
                     
                     if (obs.type === 'opponent') {
@@ -647,10 +602,8 @@
             
             for (let i = pickups.length - 1; i >= 0; i--) {
                 const pickup = pickups[i];
-                const pickupSize = pickup.getCollisionSize();
-                const pickupX = calculateXPosition(pickup.baseX, pickup.getDepth());
                 
-                if (circleRectCollision(pickupX + pickupSize / 2, pickup.y + pickupSize / 2, pickupSize / 2,
+                if (circleRectCollision(pickup.x + pickup.width / 2, pickup.y + pickup.height / 2, pickup.width / 2,
                                         player.x, player.y, player.width, player.height)) {
                     
                     if (pickup.type === 'gold_puck') {
@@ -745,8 +698,9 @@
                 pickupTimer = 0;
             }
             
-            // Update obstacles
+            // Update obstacles with difficulty
             for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].speedY = 3 * gameState.difficulty;
                 obstacles[i].update();
                 if (obstacles[i].isOffScreen()) {
                     obstacles.splice(i, 1);
@@ -754,8 +708,9 @@
                 }
             }
             
-            // Update pickups
+            // Update pickups with difficulty
             for (let i = pickups.length - 1; i >= 0; i--) {
+                pickups[i].speedY = 3 * gameState.difficulty;
                 pickups[i].update();
                 if (pickups[i].isOffScreen()) {
                     pickups.splice(i, 1);
