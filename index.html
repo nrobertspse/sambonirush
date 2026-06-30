@@ -21,9 +21,16 @@
             padding: 10px;
         }
 
-        .game-container {
+        .game-wrapper {
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .game-container {
+            flex: 1;
             background: #0a0e27;
             border-radius: 10px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -34,50 +41,50 @@
 
         .game-header {
             background: linear-gradient(90deg, #1a3a52 0%, #2d5a8c 100%);
-            padding: 15px;
+            padding: 10px;
             border-bottom: 3px solid #ffc107;
         }
 
         .game-title {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .game-title img {
             max-width: 100%;
             height: auto;
-            max-height: 60px;
+            max-height: 50px;
         }
 
         .game-stats {
             display: flex;
             justify-content: space-around;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .stat {
             background: rgba(255, 193, 7, 0.1);
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 5px;
             border: 2px solid #ffc107;
             text-align: center;
             flex: 1;
-            min-width: 100px;
+            min-width: 90px;
         }
 
         .stat-label {
             display: block;
             color: #b8860b;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .stat-value {
             display: block;
             color: #ffc107;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
         }
 
@@ -93,15 +100,70 @@
 
         .controls-info {
             background: rgba(26, 58, 82, 0.8);
-            padding: 10px;
+            padding: 8px;
             text-align: center;
-            font-size: 12px;
+            font-size: 11px;
             color: #ffc107;
             border-top: 2px solid #ffc107;
         }
 
         .controls-info p {
-            margin: 4px 0;
+            margin: 2px 0;
+        }
+
+        .scoreboard {
+            width: 280px;
+            background: #0a0e27;
+            border: 3px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .scoreboard-title {
+            color: #ffc107;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid #ffc107;
+            padding-bottom: 10px;
+        }
+
+        .logo-display {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .logo-display img {
+            max-width: 100%;
+            height: auto;
+            max-height: 100px;
+        }
+
+        .schedule-entry {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffc107;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .schedule-entry.revealed {
+            background: rgba(0, 200, 100, 0.2);
+            border-left-color: #00c864;
+        }
+
+        .schedule-opponent {
+            color: #ffc107;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
 
         .overlay {
@@ -123,12 +185,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .overlay-content {
@@ -196,178 +254,77 @@
             transform: scale(0.98);
         }
 
-        .schedule-reveal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
-
-        .schedule-reveal.hidden {
-            display: none;
-        }
-
-        .schedule-content {
-            background: linear-gradient(135deg, #1a3a52 0%, #2d5a8c 100%);
-            padding: 30px;
-            border-radius: 10px;
-            border: 3px solid #ffc107;
-            max-width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        }
-
-        .schedule-content h3 {
-            color: #ffc107;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-
-        .schedule-list {
-            color: #fff;
-            font-size: 16px;
-            line-height: 1.8;
-        }
-
-        .schedule-list div {
-            padding: 10px;
-            margin: 5px 0;
-            background: rgba(255, 193, 7, 0.1);
-            border-left: 3px solid #ffc107;
-            border-radius: 3px;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: #ffc107;
-            color: #1a3a52;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .close-btn:hover {
-            background: #ffed4e;
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 600px) {
-            .game-title img {
-                max-height: 50px;
+        @media (max-width: 900px) {
+            .game-wrapper {
+                flex-direction: column;
             }
-
-            .game-stats {
-                gap: 5px;
-            }
-
-            .stat {
-                padding: 6px 8px;
-                font-size: 12px;
-            }
-
-            .stat-label {
-                font-size: 10px;
-            }
-
-            .stat-value {
-                font-size: 14px;
-            }
-
-            .controls-info {
-                font-size: 11px;
-            }
-
-            .controls-info p {
-                margin: 2px 0;
-            }
-
-            .overlay-content {
-                padding: 20px;
-            }
-
-            .overlay-content h2 {
-                font-size: 24px;
+            .scoreboard {
+                width: 100%;
+                max-height: 200px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="game-header">
-            <div class="game-title">
-                <img src="assets/Samboni_Schedule_Rush.png" alt="Samboni's Schedule Rush" onerror="this.style.display='none'">
+    <div class="game-wrapper">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-title">
+                    <img src="assets/Samboni_Schedule_Rush.png" alt="Samboni's Schedule Rush" onerror="this.style.display='none'">
+                </div>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-label">Score:</span>
+                        <span class="stat-value" id="score">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Revealed:</span>
+                        <span class="stat-value" id="opponents-revealed">0/16</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Distance:</span>
+                        <span class="stat-value" id="distance">0m</span>
+                    </div>
+                </div>
             </div>
-            <div class="game-stats">
-                <div class="stat">
-                    <span class="stat-label">Score:</span>
-                    <span class="stat-value" id="score">0</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Opponents Revealed:</span>
-                    <span class="stat-value" id="opponents-revealed">0/16</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Distance:</span>
-                    <span class="stat-value" id="distance">0m</span>
-                </div>
-            </div>
-        </div>
 
-        <canvas id="gameCanvas"></canvas>
+            <canvas id="gameCanvas"></canvas>
 
-        <div id="gameOverScreen" class="overlay hidden">
-            <div class="overlay-content">
-                <h2>Game Over!</h2>
-                <div class="final-stats">
-                    <p>Final Score: <span id="final-score">0</span></p>
-                    <p>Opponents Revealed: <span id="final-opponents">0</span>/16</p>
-                    <p>Distance Traveled: <span id="final-distance">0</span>m</p>
-                </div>
-                <button id="restartBtn" class="button">Play Again</button>
+            <div class="controls-info">
+                <p>📱 <strong>Mobile:</strong> Tap left/right side to move | 🎮 <strong>Desktop:</strong> Arrow keys or A/D</p>
             </div>
         </div>
 
-        <div id="victoryScreen" class="overlay hidden">
-            <div class="overlay-content">
-                <h2>🎉 Victory! 🎉</h2>
-                <p>You've revealed the entire Providence Bruins schedule!</p>
-                <div class="final-stats">
-                    <p>Final Score: <span id="victory-score">0</span></p>
-                    <p>Distance Traveled: <span id="victory-distance">0</span>m</p>
-                </div>
-                <button id="victoryRestartBtn" class="button">Play Again</button>
+        <div class="scoreboard">
+            <div class="scoreboard-title">Providence Bruins<br>Schedule</div>
+            <div id="logoDisplay" class="logo-display">
+                <img src="assets/Samboni_Schedule_Rush.png" alt="Schedule" onerror="this.style.display='none'">
             </div>
+            <div id="scheduleBoard" style="color: #ffc107; text-align: center; padding: 20px; font-size: 14px;">Opponents Revealed</div>
         </div>
+    </div>
 
-        <div id="scheduleReveal" class="schedule-reveal hidden">
-            <div class="schedule-content">
-                <button class="close-btn" id="closeSchedule">&times;</button>
-                <h3>Providence Bruins Schedule</h3>
-                <div id="scheduleList" class="schedule-list"></div>
+    <div id="gameOverScreen" class="overlay hidden">
+        <div class="overlay-content">
+            <h2>Game Over!</h2>
+            <div class="final-stats">
+                <p>Final Score: <span id="final-score">0</span></p>
+                <p>Opponents Revealed: <span id="final-opponents">0</span>/16</p>
+                <p>Distance Traveled: <span id="final-distance">0</span>m</p>
             </div>
+            <button id="restartBtn" class="button">Play Again</button>
         </div>
+    </div>
 
-        <div class="controls-info">
-            <p>📱 <strong>Mobile:</strong> Tap left/right side to move</p>
-            <p>🖱️ <strong>Desktop:</strong> Arrow keys or A/D to move</p>
+    <div id="victoryScreen" class="overlay hidden">
+        <div class="overlay-content">
+            <h2>🎉 Victory! 🎉</h2>
+            <p>You've revealed the entire Providence Bruins schedule!</p>
+            <div class="final-stats">
+                <p>Final Score: <span id="victory-score">0</span></p>
+                <p>Distance Traveled: <span id="victory-distance">0</span>m</p>
+            </div>
+            <button id="victoryRestartBtn" class="button">Play Again</button>
         </div>
     </div>
 
@@ -388,18 +345,8 @@
             opponentRight: 'assets/Opponent_Skater_HAM_Right.png'
         };
 
-        let imagesLoaded = 0;
-        const totalImages = Object.keys(imageFiles).length;
-
         for (const [key, src] of Object.entries(imageFiles)) {
             const img = new Image();
-            img.onload = () => {
-                imagesLoaded++;
-            };
-            img.onerror = () => {
-                imagesLoaded++;
-                console.warn(`Failed to load: ${src}`);
-            };
             img.src = src;
             images[key] = img;
         }
@@ -408,7 +355,6 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Set canvas size
         function resizeCanvas() {
             const container = canvas.parentElement;
             const rect = container.getBoundingClientRect();
@@ -439,51 +385,41 @@
             'Iowa Wild'
         ];
 
-        const GAMES_PER_OPPONENT = 4;
-
         let gameState = {
             score: 0,
             distance: 0,
             opponentsRevealed: new Set(),
             gameActive: true,
-            isPaused: false
+            difficulty: 1.0,
+            lastOpponentTime: 0
         };
 
-        const SPRITE_WIDTH = 80;
-        const SPRITE_HEIGHT = 80;
-        const OBSTACLE_SIZE = 50;
-        const PUCK_SIZE = 25;
-        const GOLD_PUCK_SIZE = 30;
+        // Perspective-based sizing
+        const BASE_SPRITE_WIDTH = 120;
+        const BASE_SPRITE_HEIGHT = 120;
+        const MIN_OBSTACLE_SIZE = 15;
+        const MAX_OBSTACLE_SIZE = 80;
+        const MIN_PUCK_SIZE = 8;
+        const MAX_PUCK_SIZE = 45;
 
         const player = {
             x: canvas.width / 2,
-            y: canvas.height - 100,
-            width: SPRITE_WIDTH,
-            height: SPRITE_HEIGHT,
-            speed: 5,
+            y: canvas.height - 140,
+            width: BASE_SPRITE_WIDTH,
+            height: BASE_SPRITE_HEIGHT,
             velocity: 0,
             maxVelocity: 8,
             acceleration: 0.3,
             friction: 0.85,
-            direction: 0 // -1 left, 0 straight, 1 right
+            direction: 0
         };
 
         const keys = {};
-        const touchZones = {
-            left: false,
-            right: false
-        };
+        const touchZones = { left: false, right: false };
 
-        // Keyboard input
-        window.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-        });
+        window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
-        window.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-        });
-
-        // Touch input
         canvas.addEventListener('touchstart', handleTouchStart, false);
         canvas.addEventListener('touchmove', handleTouchMove, false);
         canvas.addEventListener('touchend', handleTouchEnd, false);
@@ -493,7 +429,6 @@
             for (let touch of e.touches) {
                 const rect = canvas.getBoundingClientRect();
                 const x = touch.clientX - rect.left;
-                
                 if (x < canvas.width / 2) {
                     touchZones.left = true;
                 } else {
@@ -502,10 +437,7 @@
             }
         }
 
-        function handleTouchMove(e) {
-            e.preventDefault();
-        }
-
+        function handleTouchMove(e) { e.preventDefault(); }
         function handleTouchEnd(e) {
             e.preventDefault();
             touchZones.left = false;
@@ -516,45 +448,57 @@
         let pickups = [];
         let gameTime = 0;
 
+        // Calculate size based on depth (0 = far, 1 = near)
+        function calculateSize(minSize, maxSize, depth) {
+            return minSize + (maxSize - minSize) * depth;
+        }
+
+        // Calculate horizontal position with perspective (narrows as it approaches)
+        function calculateXPosition(baseX, depth) {
+            const centerX = canvas.width / 2;
+            const offset = (baseX - centerX) * (1 - depth * 0.3);
+            return centerX + offset;
+        }
+
         class Obstacle {
-            constructor(x, y, type, opponentIndex) {
-                this.x = x;
-                this.y = y;
+            constructor(x, y, type, opponentIndex, lane) {
+                this.baseX = x; // Store base position
+                this.y = y; // 0 = far, canvas.height = near (player)
                 this.type = type;
-                this.width = OBSTACLE_SIZE;
-                this.height = OBSTACLE_SIZE;
-                this.speedY = 3;
                 this.opponentIndex = opponentIndex;
                 this.rotation = 0;
                 this.animationFrame = 0;
+                this.lane = lane;
+                this.baseSpeed = 2.5 * gameState.difficulty;
+            }
+
+            getDepth() {
+                // Convert Y position to depth (0 = far away, 1 = at player)
+                return Math.max(0, Math.min(1, this.y / (canvas.height - 100)));
             }
 
             update() {
-                this.y += this.speedY;
+                this.y += this.baseSpeed * gameState.difficulty;
                 if (this.type !== 'opponent') {
                     this.rotation += 0.05;
                 }
-                
                 if (this.type === 'opponent') {
                     this.animationFrame += 0.1;
                 }
             }
 
             draw() {
+                const depth = this.getDepth();
+                const size = calculateSize(MIN_OBSTACLE_SIZE, MAX_OBSTACLE_SIZE, depth);
+                const x = calculateXPosition(this.baseX, depth);
+                const opacity = Math.max(0.3, depth);
+
                 let img = null;
                 switch (this.type) {
-                    case 'puck':
-                        img = images.puckBlack;
-                        break;
-                    case 'cone':
-                        img = images.cone;
-                        break;
-                    case 'net':
-                        img = images.net;
-                        break;
-                    case 'snow':
-                        img = images.snow;
-                        break;
+                    case 'puck': img = images.puckBlack; break;
+                    case 'cone': img = images.cone; break;
+                    case 'net': img = images.net; break;
+                    case 'snow': img = images.snow; break;
                     case 'opponent':
                         const frame = Math.floor(this.animationFrame) % 2;
                         img = frame === 0 ? images.opponentLeft : images.opponentRight;
@@ -563,84 +507,132 @@
 
                 if (img && img.complete) {
                     ctx.save();
-                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                    ctx.globalAlpha = opacity;
+                    ctx.translate(x + size / 2, this.y + size / 2);
                     if (this.type !== 'opponent') {
                         ctx.rotate(this.rotation);
                     }
-                    ctx.drawImage(img, -this.width / 2, -this.height / 2, this.width, this.height);
+                    ctx.drawImage(img, -size / 2, -size / 2, size, size);
                     ctx.restore();
                 }
             }
 
             isOffScreen() {
-                return this.y > canvas.height;
+                return this.y > canvas.height + 50;
+            }
+
+            getCollisionSize() {
+                const depth = this.getDepth();
+                return calculateSize(MIN_OBSTACLE_SIZE, MAX_OBSTACLE_SIZE, depth);
             }
         }
 
         class Pickup {
             constructor(x, y, type) {
-                this.x = x;
+                this.baseX = x;
                 this.y = y;
                 this.type = type;
-                this.width = type === 'gold_puck' ? GOLD_PUCK_SIZE : PUCK_SIZE;
-                this.height = this.width;
-                this.speedY = 3;
                 this.bob = 0;
+                this.baseSpeed = 2.5 * gameState.difficulty;
+            }
+
+            getDepth() {
+                return Math.max(0, Math.min(1, this.y / (canvas.height - 100)));
             }
 
             update() {
-                this.y += this.speedY;
+                this.y += this.baseSpeed * gameState.difficulty;
                 this.bob += 0.1;
             }
 
             draw() {
+                const depth = this.getDepth();
+                const size = calculateSize(MIN_PUCK_SIZE, MAX_PUCK_SIZE, depth);
+                const x = calculateXPosition(this.baseX, depth);
+                const opacity = Math.max(0.3, depth);
+
                 const img = this.type === 'gold_puck' ? images.puckGold : images.puckBlack;
                 if (img && img.complete) {
-                    ctx.drawImage(img, this.x, this.y + Math.sin(this.bob) * 3, this.width, this.height);
+                    ctx.save();
+                    ctx.globalAlpha = opacity;
+                    ctx.drawImage(img, x - size / 2, this.y + Math.sin(this.bob) * 3, size, size);
+                    ctx.restore();
                 }
             }
 
             isOffScreen() {
-                return this.y > canvas.height;
+                return this.y > canvas.height + 50;
+            }
+
+            getCollisionSize() {
+                const depth = this.getDepth();
+                return calculateSize(MIN_PUCK_SIZE, MAX_PUCK_SIZE, depth);
             }
         }
 
         function spawnObstacle() {
-            const types = ['puck', 'cone', 'net', 'snow'];
-            const type = types[Math.floor(Math.random() * types.length)];
-            const x = Math.random() * (canvas.width - OBSTACLE_SIZE);
-            
-            obstacles.push(new Obstacle(x, -OBSTACLE_SIZE, type, null));
-            
-            if (Math.random() < 0.15 && gameState.opponentsRevealed.size < OPPONENTS.length) {
+            const lanes = [
+                { start: 50, end: 180 },
+                { start: 220, end: 360 },
+                { start: 400, end: 530 }
+            ];
+
+            // Ensure clear path down the middle
+            const middleLane = lanes[1];
+            const clearLanes = [0, 2];
+            const lanesToUse = Math.random() < 0.7 ? clearLanes : [0, 1, 2];
+
+            for (const laneIdx of lanesToUse) {
+                const lane = lanes[laneIdx];
+                const x = lane.start + Math.random() * (lane.end - lane.start);
+                
+                const types = ['puck', 'cone', 'net', 'snow'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                obstacles.push(new Obstacle(x, -50, type, null, laneIdx));
+            }
+
+            // Spawn opponent occasionally
+            if (Math.random() < 0.12 && gameState.opponentsRevealed.size < OPPONENTS.length) {
                 let opponentIndex;
                 do {
                     opponentIndex = Math.floor(Math.random() * OPPONENTS.length);
                 } while (gameState.opponentsRevealed.has(opponentIndex));
                 
-                const x = Math.random() * (canvas.width - OBSTACLE_SIZE);
-                obstacles.push(new Obstacle(x, -OBSTACLE_SIZE, 'opponent', opponentIndex));
+                const lane = lanes[Math.floor(Math.random() * lanes.length)];
+                const x = lane.start + Math.random() * (lane.end - lane.start);
+                obstacles.push(new Obstacle(x, -50, 'opponent', opponentIndex, Math.floor(Math.random() * 3)));
             }
         }
 
         function spawnPickup() {
+            const lanes = [
+                { start: 50, end: 180 },
+                { start: 220, end: 360 },
+                { start: 400, end: 530 }
+            ];
+            
+            const lane = lanes[Math.floor(Math.random() * lanes.length)];
+            const x = lane.start + Math.random() * (lane.end - lane.start);
             const isGold = Math.random() < 0.2;
-            const x = Math.random() * (canvas.width - (isGold ? GOLD_PUCK_SIZE : PUCK_SIZE));
-            pickups.push(new Pickup(x, -20, isGold ? 'gold_puck' : 'puck'));
+            pickups.push(new Pickup(x, -40, isGold ? 'gold_puck' : 'puck'));
         }
 
         function checkCollisions() {
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const obs = obstacles[i];
+                const obsSize = obs.getCollisionSize();
+                const obsX = calculateXPosition(obs.baseX, obs.getDepth());
                 
-                if (circleRectCollision(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 2, 
+                if (circleRectCollision(obsX + obsSize / 2, obs.y + obsSize / 2, obsSize / 2, 
                                         player.x, player.y, player.width, player.height)) {
                     
                     if (obs.type === 'opponent') {
                         const opponentIndex = obs.opponentIndex;
                         gameState.opponentsRevealed.add(opponentIndex);
                         gameState.score += 100;
-                        showScheduleReveal(opponentIndex);
+                        gameState.lastOpponentTime = gameTime;
+                        updateScheduleBoard();
                         
                         obstacles.splice(i, 1);
                         continue;
@@ -655,8 +647,10 @@
             
             for (let i = pickups.length - 1; i >= 0; i--) {
                 const pickup = pickups[i];
+                const pickupSize = pickup.getCollisionSize();
+                const pickupX = calculateXPosition(pickup.baseX, pickup.getDepth());
                 
-                if (circleRectCollision(pickup.x + pickup.width / 2, pickup.y + pickup.height / 2, pickup.width / 2,
+                if (circleRectCollision(pickupX + pickupSize / 2, pickup.y + pickupSize / 2, pickupSize / 2,
                                         player.x, player.y, player.width, player.height)) {
                     
                     if (pickup.type === 'gold_puck') {
@@ -678,25 +672,35 @@
             return (dx * dx + dy * dy) < (radius * radius);
         }
 
-        function showScheduleReveal(opponentIndex) {
-            const opponent = OPPONENTS[opponentIndex];
-            const scheduleReveal = document.getElementById('scheduleReveal');
-            const scheduleList = document.getElementById('scheduleList');
+        function updateScheduleBoard() {
+            const board = document.getElementById('scheduleBoard');
+            const logo = document.getElementById('logoDisplay');
             
-            scheduleList.innerHTML = '';
-            for (let i = 0; i < GAMES_PER_OPPONENT; i++) {
-                const isHome = i % 2 === 0;
-                const location = isHome ? 'Home vs' : 'Away @';
-                const div = document.createElement('div');
-                div.textContent = `${location} ${opponent}`;
-                scheduleList.appendChild(div);
+            if (gameState.opponentsRevealed.size === 0) {
+                logo.innerHTML = '<img src="assets/Samboni_Schedule_Rush.png" alt="Schedule" onerror="this.style.display=\'none\'">';
+                board.innerHTML = '<span style="color: #ffc107;">Ready to reveal!</span>';
+                return;
             }
             
-            scheduleReveal.classList.remove('hidden');
+            logo.innerHTML = '';
+            board.innerHTML = '';
             
-            document.getElementById('closeSchedule').onclick = () => {
-                scheduleReveal.classList.add('hidden');
-            };
+            for (const idx of Array.from(gameState.opponentsRevealed).sort((a, b) => a - b)) {
+                const opponent = OPPONENTS[idx];
+                const entry = document.createElement('div');
+                entry.className = 'schedule-entry revealed';
+                entry.innerHTML = `<div class="schedule-opponent">${opponent}</div>`;
+                for (let i = 0; i < 2; i++) {
+                    const isHome = i === 0;
+                    const location = isHome ? 'Home' : 'Away';
+                    const line = document.createElement('div');
+                    line.style.fontSize = '11px';
+                    line.style.marginTop = '2px';
+                    line.textContent = `${location} Game`;
+                    entry.appendChild(line);
+                }
+                board.appendChild(entry);
+            }
         }
 
         let spawnTimer = 0;
@@ -706,6 +710,9 @@
             if (!gameState.gameActive) return;
             
             gameTime++;
+            
+            // Increase difficulty over time
+            gameState.difficulty = 1.0 + (gameState.opponentsRevealed.size * 0.08) + (gameTime / 10000);
             
             let newDirection = player.direction;
             if (keys['ArrowLeft'] || keys['a'] || keys['A'] || touchZones.left) {
@@ -726,27 +733,28 @@
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
             
             spawnTimer++;
-            if (spawnTimer > 60 - Math.min(gameTime / 500, 20)) {
+            const spawnRate = Math.max(30, 80 - Math.min(gameTime / 250, 30) - (gameState.opponentsRevealed.size * 3));
+            if (spawnTimer > spawnRate) {
                 spawnObstacle();
                 spawnTimer = 0;
             }
             
             pickupTimer++;
-            if (pickupTimer > 120) {
+            if (pickupTimer > 100) {
                 spawnPickup();
                 pickupTimer = 0;
             }
             
+            // Update obstacles
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 obstacles[i].update();
                 if (obstacles[i].isOffScreen()) {
                     obstacles.splice(i, 1);
-                    if (obstacles[i - 1] && obstacles[i - 1].type !== 'opponent') {
-                        gameState.score += 5;
-                    }
+                    gameState.score += 5;
                 }
             }
             
+            // Update pickups
             for (let i = pickups.length - 1; i >= 0; i--) {
                 pickups[i].update();
                 if (pickups[i].isOffScreen()) {
@@ -835,11 +843,12 @@
                 distance: 0,
                 opponentsRevealed: new Set(),
                 gameActive: true,
-                isPaused: false
+                difficulty: 1.0,
+                lastOpponentTime: 0
             };
             
             player.x = canvas.width / 2;
-            player.y = canvas.height - 100;
+            player.y = canvas.height - 140;
             player.velocity = 0;
             player.direction = 0;
             
@@ -849,7 +858,7 @@
             
             document.getElementById('gameOverScreen').classList.add('hidden');
             document.getElementById('victoryScreen').classList.add('hidden');
-            document.getElementById('scheduleReveal').classList.add('hidden');
+            updateScheduleBoard();
             
             gameLoop();
         }
@@ -858,6 +867,7 @@
             e.preventDefault();
         }, { passive: false });
 
+        updateScheduleBoard();
         gameLoop();
     </script>
 </body>
